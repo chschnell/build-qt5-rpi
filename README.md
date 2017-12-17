@@ -48,10 +48,10 @@ sudo rpi-update
 sudo reboot
 ```
 
-Note that currently, Qt cannot be build without running `rpi-update`.
-This will hopefully change with a future Raspbian release.
+Note:
 
-You don't need to install any other APT packages on the Pi as it is part of the build script. In case you do install other packages, take caution to not pull in any of the `mesa` or `qt5` packages as they might break the build. You can check if any of these packages are installed by running `dpkg-query --list | grep -E "(mesa|qt)"`, this command lists all of these installed packages (which should be empty).
+ * Currently, Qt cannot be build without running `rpi-update` to fix the VideoCore libraries in `/opt/vc/lib`. This will hopefully change with a future Raspbian release.
+ * You don't need to install any other APT packages on the Pi as it is part of the build script. In case you do install other packages, take caution to not pull in any of the `mesa` or `qt5` packages as they might break the build. You can check if any of these packages are installed by running `dpkg-query --list | grep -E "(mesa|qt)"`, this command lists all of these installed packages (which should be empty).
 
 Keep the Pi running. You won't need the keyboard and monitor from here on.
 
@@ -143,7 +143,7 @@ Once the build is complete you'll find these subdirectories in your build direct
 
  * `sysroot` - Mirror of Pi's armhf files in `/lib`, `/usr/include`, `/usr/lib`, `/usr/share` and `/opt/vc`
  * `build` - Qt's build directory
- * `sdk` - Qt SDK (libraries and headers) for armhf architecture
+ * `sdk` - Qt SDK (libraries, headers and examples) for armhf architecture
  * `hosttools` - Qt host tools (`qmake` and others) for host's architecture
  * `release` - Tar archives of `sysroot`, `sdk` and `hosttools`
 
@@ -170,6 +170,8 @@ The script runs through several stages in fixed order, any stage or set of stage
     Install Qt locally. Clean all remains from a previous build on the Pi, then install SDK on the Pi and setup and run `ldconfig`. Build tar archives.
 
 ## Build Example
+
+This demonstrates how to build and run a single example from the Qt sources. In order to build all examples remove `-nomake examples` from variable `DEFAULT_QT_CONFIG` in your `build-qt5-rpi.conf` configuration file, then configure and build Qt.
 
 ### Raspberry Pi Runtime Setup
 
@@ -221,18 +223,18 @@ export PATH=$PATH:$HOME/qt5.9.3/hosttools/bin
 Then, cross-build Qt's `qtwebview` example:
 
 ```bash
-mkdir -p ~/examples/qtwebview
-pushd ~/examples/qtwebview
+mkdir -p ~/qt5.9.3/examples
+pushd ~/qt5.9.3/examples
 qmake ~/qt-everywhere-opensource-src-5.9.3/qtwebview/examples/examples.pro
 make -j$(nproc)
 make install
 popd
 ```
 
-Copy local `~/examples` to Pi's `~/examples`:
+Copy local `~/qt5.9.3/sdk/examples` to Pi's `~/examples`:
 
 ```bash
-rsync -a ~/examples pi@raspberrypi:
+rsync -a ~/qt5.9.3/sdk/examples pi@raspberrypi:
 ```
 
 ### Run example
@@ -244,8 +246,8 @@ Run `qtwebview` on the Pi without X11:
 ssh pi@raspberrypi
 
 # example 1: http://html5test.com
-examples/qtwebview/webview/minibrowser/minibrowser html5test.com
+examples/webview/minibrowser/minibrowser html5test.com
 
 # example 2 (SSL): https://www.youtube.com
-examples/qtwebview/webview/minibrowser/minibrowser https://www.youtube.com/tv#/watch?v=DLzxrzFCyOs
+examples/webview/minibrowser/minibrowser https://www.youtube.com/tv#/watch?v=DLzxrzFCyOs
 ```
