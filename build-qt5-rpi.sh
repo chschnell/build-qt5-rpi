@@ -125,10 +125,8 @@ function file_replace_c_str() {
     sed -e "s@${OLD}\\x00@${NEW}\\x00${OLD:${#NEW}+1}\\x00@" -i "$FILE"
 }
 
-function patch_libQt5WebEngineCore_so_5_9_3() {
-    # Possible fix in Qt 5.10?
-    # http://code.qt.io/cgit/qt/qtwebengine.git/commit/?id=e812237b6980584fc5939f49f6a18315cc694c3a
-    local LIBFILE="$CFG_BUILD/qtwebengine/lib/libQt5WebEngineCore.so.5.9.3"
+function patch_libQt5WebEngineCore_so_5() {
+    local LIBFILE=$(realpath "$CFG_BUILD/qtwebengine/lib/libQt5WebEngine.so.5")
     if [ -e $LIBFILE ]; then
         file_replace_c_str "$LIBFILE" "$CFG_SYSROOT/opt/vc/lib" /opt/vc/lib
         file_replace_c_str "$LIBFILE" libEGL.so.1 libEGL.so
@@ -327,7 +325,7 @@ if [ $DO_BUILD = true ]; then
     echo_msg "Executing command: build"
     set -o xtrace
     make_qt
-    patch_libQt5WebEngineCore_so_5_9_3
+    patch_libQt5WebEngineCore_so_5
     set +o xtrace
     echo_msg "build: ok."
 fi

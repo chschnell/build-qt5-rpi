@@ -1,6 +1,18 @@
 # build-qt5-rpi
 
-Builder script to fully cross-compile Qt 5.9.3 using a 32-Bit Debian host targeting a Raspberry Pi 2/3 without X11.
+Builder script to fully cross-compile Qt 5 using a pure Debian host targeting a Raspberry Pi 2/3 without X11.
+
+**Table of contents**
+
+* [Setup](#setup)
+  * [Raspberry Pi Setup](#raspberry-pi-setup)
+  * [Host Virtual Machine Setup](#host-virtual-machine-setup)
+  * [Host Debian Setup](#host-debian-setup)
+* [Build Qt5](#build-qt5)
+* [Build Example](#build-example)
+  * [Raspberry Pi Runtime Setup](#raspberry-pi-runtime-setup)
+  * [Build and install example](#build-and-install-example)
+  * [Run example](#run-example)
 
 ## Setup
 
@@ -11,7 +23,7 @@ To run this script you need:
  * Host: Anything capable of running a 32-Bit Debian 9 (i.e. [Oracle VirtualBox](https://www.virtualbox.org/) or a PC)
  * Host OS: Debian 9 Stretch 32-Bit netinst ([debian-9.3.0-i386-netinst.iso](https://www.debian.org/CD/netinst/index.html))
 
-The reason for 32-Bit Debian 9 is that we can use its built-in armhf cross-compiler without relying on any 3rd party tools.
+The reason for 32-Bit Debian 9 is that we can use its built-in armhf cross-compiler for Qt without relying on any 3rd party tools.
 
 It seems currently not possible to set up a 64-Bit Debian host using its built-in i386, amd64 and armhf toolchains in the same installation (Qt builds some host tools for 32-Bit target, regardless of the host's architecture).
 
@@ -96,10 +108,10 @@ Finally, as root, install the apt packages required for building Qt5:
 
 ```bash
 # install toolchain and cross-toolchain as well as several build tools
-sudo apt-get install build-essential crossbuild-essential-armhf pkg-config git perl python gperf bison ruby flex gyp ninja-build libnss3-dev libnspr4-dev
+sudo apt-get install build-essential crossbuild-essential-armhf pkg-config git perl python gperf bison ruby flex gyp libnss3-dev libnspr4-dev
 ```
 
-## Build Qt5.9
+## Build Qt5
 
 Install this repository and the Qt sources:
 
@@ -151,15 +163,15 @@ The script runs through several stages in fixed order, any stage or set of stage
 
  4. **build**
 
-    Run Qt's `make` parallelized over number of cores. Patch broken paths in `libQt5WebEngineCore.so.5.9.3` if it exists.
+    Run Qt's `make` parallelized over number of cores. Patch broken paths in `libQt5WebEngineCore.so.5` if its realpath exists.
 
  5. **install**
 
     Install Qt locally. Clean all remains from a previous build on the Pi, then install SDK on the Pi and setup and run `ldconfig`. Build tar archives.
 
-## Cross-build and run an example on the Pi
+## Build Example
 
-### Pi Setup
+### Raspberry Pi Runtime Setup
 
 These final touches are recommended, though not strictly required, to improve running Qt applications without X11 on the Pi.
 
