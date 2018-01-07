@@ -37,7 +37,7 @@ readonly APT_PKGS_RPI_DEV="zlib1g-dev libjpeg-dev libpng-dev\
  libwebp-dev libopus-dev unixodbc-dev libsqlite0-dev libxcursor-dev\
  libxcomposite-dev libxdamage-dev libxrandr-dev libxtst-dev libxss-dev\
  libxkbcommon-dev libdouble-conversion-dev libbluetooth-dev\
- libgstreamer0.10-dev libgstreamer-plugins-base0.10-dev"
+ libgstreamer0.10-dev libgstreamer-plugins-base0.10-dev libatspi2.0-dev"
 
 readonly APT_PKGS_RPI_X11_DEV="libx11-xcb-dev libgbm-dev libxcb-xfixes0-dev\
  libxcb-glx0-dev libsm-dev libxkbcommon-x11-dev libgtk-3-dev libwayland-dev\
@@ -48,7 +48,7 @@ readonly APT_PKGS_RPI_TOOLS="ttf-mscorefonts-installer fontconfig upower"
 
 readonly DEFAULT_QT_CONFIG="-release -opensource -confirm-license\
  -platform linux-g++ -device linux-rasp-pi2-g++ -device-option\
- CROSS_COMPILE=arm-linux-gnueabihf- -opengl es2 -no-gtk -nomake tests\
+ CROSS_COMPILE=arm-linux-gnueabihf- -opengl es2 -silent -nomake tests\
  -nomake examples"
 
 readonly ATTR_RED=`tput setaf 1`
@@ -125,8 +125,8 @@ function file_replace_c_str() {
     sed -e "s@${OLD}\\x00@${NEW}\\x00${OLD:${#NEW}+1}\\x00@" -i "$FILE"
 }
 
-function patch_libQt5WebEngineCore_so_5() {
-    local LIBFILE=$(realpath "$CFG_BUILD/qtwebengine/lib/libQt5WebEngineCore.so.5")
+function patch_libQt5WebEngineCore_so_5_9_3() {
+    local LIBFILE=$(realpath "$CFG_BUILD/qtwebengine/lib/libQt5WebEngineCore.so.5.9.3")
     if [ -e $LIBFILE ]; then
         file_replace_c_str "$LIBFILE" "$CFG_SYSROOT/opt/vc/lib" /opt/vc/lib
         file_replace_c_str "$LIBFILE" libEGL.so.1 libEGL.so
@@ -278,8 +278,11 @@ CFG_EXTPREFIX=${CFG_EXTPREFIX:=$CFG_ROOT/sdk}               # Host runtime insta
 CFG_HOSTPREFIX=${CFG_HOSTPREFIX:=$CFG_ROOT/hosttools}       # Host tools installation directory
 CFG_RELPREFIX=${CFG_RELPREFIX:=$CFG_ROOT/release}           # Release archives directory
 
-export PKG_CONFIG_LIBDIR=$CFG_SYSROOT/usr/lib/pkgconfig:$CFG_SYSROOT/usr/share/pkgconfig:$CFG_SYSROOT/usr/lib/arm-linux-gnueabihf/pkgconfig:$CFG_SYSROOT/opt/vc/lib/pkgconfig
 export PKG_CONFIG_SYSROOT_DIR=$CFG_SYSROOT
+export PKG_CONFIG_LIBDIR=$CFG_SYSROOT/usr/lib/pkgconfig\
+:$CFG_SYSROOT/usr/share/pkgconfig\
+:$CFG_SYSROOT/usr/lib/arm-linux-gnueabihf/pkgconfig\
+:$CFG_SYSROOT/opt/vc/lib/pkgconfig
 
 if [ $DO_HELP = true ]; then
     show_help
@@ -325,7 +328,7 @@ if [ $DO_BUILD = true ]; then
     echo_msg "Executing command: build"
     set -o xtrace
     make_qt
-    patch_libQt5WebEngineCore_so_5
+    patch_libQt5WebEngineCore_so_5_9_3
     set +o xtrace
     echo_msg "build: ok."
 fi

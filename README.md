@@ -20,14 +20,11 @@ To run this script you need:
 
  * Raspberry Pi 2 or 3 (tested on a Pi 3)
  * Raspberry Pi OS: Raspbian Stretch Lite ([2017-11-29-raspbian-stretch-lite.img](https://www.raspberrypi.org/downloads/raspbian/))
- * Host: Anything capable of running a 32-Bit Debian 9 (i.e. [Oracle VirtualBox](https://www.virtualbox.org/) or a PC)
- * Host OS: Debian 9 Stretch 32-Bit netinst ([debian-9.3.0-i386-netinst.iso](https://www.debian.org/CD/netinst/index.html))
-
-The reason for 32-Bit Debian 9 is that we can use its built-in armhf cross-compiler for Qt without relying on any 3rd party tools.
-
-It seems currently not possible to set up a 64-Bit Debian host using its built-in i386, amd64 and armhf toolchains in the same installation (Qt builds some host tools for 32-Bit target, regardless of the host's architecture).
-
-A [32-Bit Ubuntu](https://www.ubuntu.com/download/alternative-downloads) >= 16.04 should also work for the host (not tested).
+ * Host: Anything capable of running a 32 or 64 Bit Debian 9 (i.e. [Oracle VirtualBox](https://www.virtualbox.org/) or a PC)
+ * Host OS: One of
+   * Debian 9 Stretch 64-Bit netinst ([debian-9.3.0-amd64-netinst.iso](https://www.debian.org/CD/netinst/index.html))
+   * Debian 9 Stretch 32-Bit netinst ([debian-9.3.0-i386-netinst.iso](https://www.debian.org/CD/netinst/index.html))
+   * Ubuntu 32 or 64 Bit >= 16.04 should also work for the host (not tested)
 
 ### Raspberry Pi Setup
 
@@ -57,20 +54,24 @@ Keep the Pi running. You won't need the keyboard and monitor from here on.
 
 ### Host Virtual Machine Setup
 
-If you use VirtualBox, create a 32-Bit Debian virtual machine and give it at least 16GB of hard disk space.
+If you use VirtualBox, create a 32 or 64 Bit Debian virtual machine and give it at least 16GB of hard disk space.
 
-If you plan to use only a single processor core, give your machine 4GB of RAM. If you plan to use multiple cores instead and your CPU supports PAE ([Physical Addresss Extension](https://en.wikipedia.org/wiki/Physical_Address_Extension)):
+**32-Bit hosts:**
 
- * assign as many cores and as much RAM (max. 4GB times the number of cores) as reasonably possible, and
- * make sure to enable PAE and IO-APIC in the virtual machine to make the extra RAM accessible to the kernel (tested with 4 cores and 8GB of RAM).
+ * If you plan to use only a single processor core, give your machine 4GB of RAM.
+ * If you plan to use multiple cores instead and your CPU supports PAE ([Physical Addresss Extension](https://en.wikipedia.org/wiki/Physical_Address_Extension)), then:
+   * assign as many cores and as much RAM (max. 4GB times the number of cores) as reasonably possible, and
+   * make sure to enable PAE and IO-APIC in the virtual machine to make the extra RAM accessible to the kernel (tested with 4 cores and 8GB of RAM).
+ * You can test these settings later once the host is up and running by running `uname -r` where you should read something like 4.9.0-4-686-**pae** and by running `free -h` where you can check the RAM size.
 
-Boot the machine, install Debian from `debian-9.3.0-i386-netinst.iso` and log in.
+Boot the machine, install Debian from the `.iso` and log in. You can work with the defaults in Debian setup, for a minimal setup unselect all at `tasksel` except:
+
+ * [X] `SSH Server`
+ * [X] `standard system utilites`
 
 ### Host Debian Setup
 
 If you use VirtualBox, use `ip addr` to find your host's IP address and then use a SSH terminal (like [putty](http://www.putty.org/) on Windows) from here on to interact with the host machine.
-
-In case you did enable PAE in the virtual machine earlier, you can test it by running `uname -r` where you should read something like 4.9.0-4-686-**pae** and by running `free -h` where you can compare the RAM size.
 
 Completely optional (the bash script does not need root permissions, only a few steps in this section) but useful, install `sudo`:
 
@@ -108,7 +109,18 @@ Finally, as root, install the apt packages required for building Qt5:
 
 ```bash
 # install toolchain and cross-toolchain as well as several build tools
-sudo apt-get install build-essential crossbuild-essential-armhf pkg-config git perl python gperf bison ruby flex gyp libnss3-dev libnspr4-dev
+sudo apt-get install build-essential crossbuild-essential-armhf\
+ pkg-config git perl python gperf bison ruby flex gyp\
+ libnss3-dev libnspr4-dev libfreetype6-dev libpng-dev libdbus-1-dev
+```
+
+**64-Bit hosts:** Additionally install 32-Bit architecture and required apt packages:
+
+```bash
+# install compatibility packages
+sudo dpkg --add-architecture i386
+sudo apt-get update
+sudo apt-get install linux-libc-dev:i386 g++-6-multilib
 ```
 
 ## Build Qt5
@@ -180,9 +192,12 @@ These final touches are recommended, though not strictly required, to improve ru
  * To counter the `Unable to query physical screen size` warnings, find your display's dimensions in millimeters and set these environment variables:
    
    ```bash
-   # add to Pi's ~./profile (example Samsung SyncMaster P2450H with 531x298 mm):
+   # add to Pi's ~./profile (example Samsung SyncMaster P2450H with 531mm x 298mm):
    export QT_QPA_EGLFS_PHYSICAL_WIDTH=531
    export QT_QPA_EGLFS_PHYSICAL_HEIGHT=298
+   # Raspberry Pi 7" touchscreen: 155mm x 86mm
+   #export QT_QPA_EGLFS_PHYSICAL_WIDTH=155
+   #export QT_QPA_EGLFS_PHYSICAL_HEIGHT=86
    ```
 
  * To hide the mouse cursor:
@@ -196,6 +211,14 @@ These final touches are recommended, though not strictly required, to improve ru
    ```bash
    ssh pi@raspberrypi sudo raspi-config
    ```
+
+ * If you use a mouse or a touchscreen without X11, consider installing console mouse support:
+   
+   ```bash
+   ssh pi@raspberrypi sudo apt-get install gpm
+   ```
+   
+   This allows you to wake the console screen saver using your mouse or touchscreen.
 
 The builder script already installs these additional packages on the Pi (you need to install them when deploying to a different Pi):
 
