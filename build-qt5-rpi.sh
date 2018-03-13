@@ -126,11 +126,13 @@ function file_replace_c_str() {
 }
 
 function patch_libQt5WebEngineCore_so_5_9_3() {
-    local LIBFILE=$(realpath "$CFG_BUILD/qtwebengine/lib/libQt5WebEngineCore.so.5.9.3")
-    if [ -e $LIBFILE ]; then
-        file_replace_c_str "$LIBFILE" "$CFG_SYSROOT/opt/vc/lib" /opt/vc/lib
-        file_replace_c_str "$LIBFILE" libEGL.so.1 libEGL.so
-        file_replace_c_str "$LIBFILE" libGLESv2.so.2 libGLESv2.so
+    if [ -e "$CFG_BUILD/qtwebengine/lib/libQt5WebEngineCore.so.5.9.3" ]; then
+        local LIBFILE=$(realpath "$CFG_BUILD/qtwebengine/lib/libQt5WebEngineCore.so.5.9.3")
+        if [ -e $LIBFILE ]; then
+            file_replace_c_str "$LIBFILE" "$CFG_SYSROOT/opt/vc/lib" /opt/vc/lib
+            file_replace_c_str "$LIBFILE" libEGL.so.1 libEGL.so
+            file_replace_c_str "$LIBFILE" libGLESv2.so.2 libGLESv2.so
+        fi
     fi
 }
 
