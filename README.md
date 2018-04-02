@@ -141,7 +141,7 @@ cd ~/qt5.9.4
 ../build-qt5-rpi/build-qt5-rpi.sh install
 ```
 
-If all goes well then you can now use this host to cross-build Qt applications for your Pi. Before deploying your application you need to copy `qt-everywhere-opensource-rpi_5.9.4_armhf.deb` to your Pi and install it there, see [Raspberry Pi installation](#raspberry-pi-installation).
+If all goes well then you can now use this host to cross-build Qt applications for your Pi. Before deploying your application you need to copy `qt-everywhere-opensource-rpi_5.9.4_armhf.deb` to your Pi and install it there, as described in the next section.
 
 ## Raspberry Pi installation
 
@@ -198,35 +198,28 @@ pi@raspberrypi:~ $ sudo reboot
 
 These are the steps to install Qt on a single Pi from the host. The `.deb` package for the Pi can of course easily be copied to and installed on any number of your devices.
 
- * First, copy the Qt `.deb` installer from your build host to your Pi:
+```bash
+# copy the Qt installer from your build host to your Pi
+scp qt-everywhere-opensource-rpi_5.9.4_armhf.deb pi@raspberrypi:
 
-   ```bash
-   scp qt-everywhere-opensource-rpi_5.9.4_armhf.deb pi@raspberrypi:
-   ```
+# log in to your Pi
+ssh pi@raspberrypi
 
- * Log in to your Pi:
+# install Qt sdk and runtime and all missing dependencies
+pi@raspberrypi:~ $ sudo apt install ./qt-everywhere-opensource-rpi_5.9.4_armhf.deb
+```
 
-   ```bash
-   ssh pi@raspberrypi
-   ```
+Note the use of `apt` instead of `apt-get`. In case you want to uninstall Qt at a later point, run:
 
- * Install Qt and all its missing dependencies (note the use of `apt` instead of `apt-get`):
+```bash
+# remove Qt sdk and runtime
+pi@raspberrypi:~ $ sudo apt remove qt-everywhere-opensource-rpi
 
-   ```bash
-   pi@raspberrypi:~ $ sudo apt install ./qt-everywhere-opensource-rpi_5.9.4_armhf.deb
-   ```
+# remove dangling dependencies
+pi@raspberrypi:~ $ sudo apt autoremove
+```
 
- * In case you need to, this is how you would remove your Qt package and its dependencies again from your Pi:
-
-   ```bash
-   # remove Qt runtime
-   pi@raspberrypi:~ $ sudo apt remove qt-everywhere-opensource-rpi
-   
-   # remove dependencies
-   pi@raspberrypi:~ $ sudo apt autoremove
-   ```
-
-While you're logged in to your Pi, consider these additional steps for your setup (specifically if you don't plan to use X11):
+While you're logged in to your Pi, it is a good time to consider these additional steps for your setup (specifically if you don't plan to use X11):
 
  * To counter the `Unable to query physical screen size` warnings, find your display's dimensions in millimeters and set these environment variables:
    
@@ -254,9 +247,12 @@ While you're logged in to your Pi, consider these additional steps for your setu
    
    This allows you to wake the console screen saver using your mouse or touchscreen.
 
+When you're done you can close your Pi login session by entering the `exit` command.
+
 ## Example
 
-In this example we will build Qt's `minibrowser` for the Pi and run it without X11.
+In this example we will cross-build Qt's `minibrowser` for the Pi and run it without X11.
+The `minibrowser` example uses Qt's [WebEngine](https://doc.qt.io/qt-5.9/qtwebengine-overview.html) component which embeds the Chromium browser.
 
 On the host, add Qt's host tools (for `qmake` etc.) to your PATH:
 

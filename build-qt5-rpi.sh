@@ -305,10 +305,11 @@ function build_rpi_deb {
     { log_info "Building list of package dependencies"; } 2> /dev/null
     mount_sysroot_chroot
     echo_off
-    local QT_RPI_DEPS="$(get_rpi_apt_nondev_dependencies)"
+    local DEPENDENCIES="$(get_rpi_apt_nondev_dependencies)"
     echo_on
     unmount_all
-    local DEPENDENCIES="${QT_RPI_DEPS} ${APT_PKGS_RPI_TOOLS}"
+
+    DEPENDENCIES+=" ${APT_PKGS_RPI_TOOLS}"
 
     { log_info "Creating \"/DEBIAN/control\""; } 2> /dev/null
     cat <<EOF > "${DEB_PACKAGE_DIR}/DEBIAN/control"
@@ -355,7 +356,7 @@ Maintainer: ${CFG_DEB_MAINTAINER}
 Priority: optional
 Version: ${QT_VERSION}
 Description: Host cross-tools of qt-everywhere-opensource for Raspberry Pi
-Depends: build-essential,crossbuild-essential-armhf
+Depends: build-essential, crossbuild-essential-armhf
 EOF
 
     { log_info "Copying files into \"${DEB_PACKAGE_DIR}\""; } 2> /dev/null
