@@ -10,11 +10,11 @@ Bash script to fully cross-compile Qt 5 using a pure Debian host targeting a Ras
    * [Debian setup](#debian-setup)
    * [Downloads](#downloads)
  * [Building Qt5](#building-qt5)
-   * [Build details](#build-details)
  * [Raspberry Pi installation](#raspberry-pi-installation)
    * [Pi setup](#pi-setup)
    * [Qt5 installation](#qt5-installation)
  * [Example](#example)
+ * [Script details](#script-details)
  * [Troubleshooting and support](#troubleshooting-and-support)
 
 ## Introduction
@@ -84,7 +84,7 @@ sudo apt-get install build-essential crossbuild-essential-armhf\
 
 **Extra notes for 64-Bit hosts only**
 
-* Enable 32-Bit architecture support and refresh local apt repository index:
+* Enable 32-Bit architecture support, refresh local apt repository index and install required 32-Bit compatibility apt packages:
 
    ```bash
    # enable 32-Bit architecture support
@@ -92,11 +92,7 @@ sudo apt-get install build-essential crossbuild-essential-armhf\
    
    # refresh local apt repository index
    sudo apt-get update
-   ```
-
-* Install required 32-Bit compatibility apt packages:
    
-   ```bash
    # install 32-Bit compatibility packages
    sudo apt-get install linux-libc-dev:i386 g++-6-multilib
    ```
@@ -146,33 +142,6 @@ cd ~/qt5.9.4
 ```
 
 If all goes well then you can now use this host to cross-build Qt applications for your Pi. Before deploying your application you need to copy `qt-everywhere-opensource-rpi_5.9.4_armhf.deb` to your Pi and install it there, see [Raspberry Pi installation](#raspberry-pi-installation).
-
-### Build details
-
-The script runs through several stages in fixed order, any stage or set of stages can be specified on the command line (see also `build-qt5-rpi.sh -h`). Stages in detail:
-
- 1. **init** - This stage creates the build configuration file `build-qt5-rpi.conf` in your local directory.
-    You can customize your Qt build by changing variables in this file before running any of the other stages, see the comments inside it for more information.
- 2. **mksysroot** - Creates a copy of the Raspbian image specified in `build-qt5-rpi.conf`, then updates the copied image and installs apt packages needed by Qt using `chroot` and `qemu`. Finally copies relevant files from the modified image into `/usr/local/qt5-rpi-sysroot` which is later used by the Qt builder as the sysroot. You can usually ignore this stage, it will be run automatically by the next stage `config` if needed.
- 3. **config** - Runs `mksysroot` when running for the first time.
-    Cleans all remains from a previous build on the host, then runs Qt's `configure`.
- 4. **build** - Runs Qt's `make` parallelized over your number of cores.
-    Qt 5.9.3: patches broken paths in `libQt5WebEngineCore.so.5.9.3`.
- 5. **install** - Installs Qt and creates the `.deb` installers. Cleans all remains from a previous build on the Pi, installs sdk locally on the host in `/usr/local/qt5-rpi` and the host-tools in `/usr/local/qt5`, then creates the `.deb` packages.
-
-Once the build is complete you'll find these files and subdirectories in the host's build directory:
-
- * `./build/` - Qt's build directory. See `build/config.summary` for a summary of Qt's feature auto-detection.
- * `./build-qt5-rpi.conf` - Build configuration file, created in the `init` stage.
- * `./qt-everywhere-opensource-host_5.9.4_amd64.deb` - Contains a copy of the Raspbian sysroot `/usr/local/qt5-rpi-sysroot` (armhf), a copy of the Qt sdk and runtime `/usr/local/qt5-rpi` (armhf) and a copy of the Qt host tools `/usr/local/qt5` (amd64 or i386). The installer copies host tools (`bin/qmake` etc.) into `/usr/local` to make them directly available through the default `PATH`. Depends on: `build-essential` and `crossbuild-essential-armhf`.
- * `./qt-everywhere-opensource-rpi_5.9.4_armhf.deb` - Contains a copy of the Qt sdk and runtime `/usr/local/qt5-rpi` (armhf). The Qt shared libraries are automatically registered and unregistered with a `ldconfig` trigger. Depends on all non-dev packages that were installed in the build environment. Also depends on `ttf-mscorefonts-installer` for improved fonts and on `upower` to counter the `org.freedesktop.UPower.GetDisplayDevice` warnings from Qt.
- * `./sysroot.img` - Locally modified copy of a Raspbian image.
-
-The script also creates these directories:
-
- * `/usr/local/qt5/` - Qt host tools (`qmake` and others) in host's architecture (amd64 or i386)
- * `/usr/local/qt5-rpi/` - Qt sdk and runtime (libraries, headers and examples) for Raspberry Pi (armhf)
- * `/usr/local/qt5-rpi-sysroot/` - Raspberry Pi sysroot for cross-building Qt applications (armhf)
 
 ## Raspberry Pi installation
 
@@ -322,6 +291,33 @@ pi@raspberrypi:~ $ minibrowser/minibrowser https://www.youtube.com/tv#/watch?v=D
 ```
 
 If you want to build all examples remove `-nomake examples` from variable `CFG_QT_CONFIG` in your build configuration file `build-qt5-rpi.conf`, then configure, build and install Qt again.
+
+## Script details
+
+The script runs through several stages in fixed order, any stage or set of stages can be specified on the command line (see also `build-qt5-rpi.sh -h`). Stages in detail:
+
+ 1. **init** - This stage creates the build configuration file `build-qt5-rpi.conf` in your local directory.
+    You can customize your Qt build by changing variables in this file before running any of the other stages, see the comments inside it for more information.
+ 2. **mksysroot** - Creates a copy of the Raspbian image specified in `build-qt5-rpi.conf`, then updates the copied image and installs apt packages needed by Qt using `chroot` and `qemu`. Finally copies relevant files from the modified image into `/usr/local/qt5-rpi-sysroot` which is later used by the Qt builder as the sysroot. You can usually ignore this stage, it will be run automatically by the next stage `config` if needed.
+ 3. **config** - Runs `mksysroot` when running for the first time.
+    Cleans all remains from a previous build on the host, then runs Qt's `configure`.
+ 4. **build** - Runs Qt's `make` parallelized over your number of cores.
+    Qt 5.9.3: patches broken paths in `libQt5WebEngineCore.so.5.9.3`.
+ 5. **install** - Installs Qt and creates the `.deb` installers. Cleans all remains from a previous build on the Pi, installs sdk locally on the host in `/usr/local/qt5-rpi` and the host-tools in `/usr/local/qt5`, then creates the `.deb` packages.
+
+Once the build is complete you'll find these files and subdirectories in the host's build directory:
+
+ * `./build/` - Qt's build directory. See `build/config.summary` for a summary of Qt's feature auto-detection.
+ * `./build-qt5-rpi.conf` - Build configuration file, created in the `init` stage.
+ * `./qt-everywhere-opensource-host_5.9.4_amd64.deb` - Contains a copy of the Raspbian sysroot `/usr/local/qt5-rpi-sysroot` (armhf), a copy of the Qt sdk and runtime `/usr/local/qt5-rpi` (armhf) and a copy of the Qt host tools `/usr/local/qt5` (amd64 or i386). The installer copies host tools (`bin/qmake` etc.) into `/usr/local` to make them directly available through the default `PATH`. Depends on: `build-essential` and `crossbuild-essential-armhf`.
+ * `./qt-everywhere-opensource-rpi_5.9.4_armhf.deb` - Contains a copy of the Qt sdk and runtime `/usr/local/qt5-rpi` (armhf). The Qt shared libraries are automatically registered and unregistered with a `ldconfig` trigger. Depends on all non-dev packages that were installed in the build environment. Also depends on `ttf-mscorefonts-installer` for improved fonts and on `upower` to counter the `org.freedesktop.UPower.GetDisplayDevice` warnings from Qt.
+ * `./sysroot.img` - Locally modified copy of a Raspbian image.
+
+The script also creates these directories:
+
+ * `/usr/local/qt5/` - Qt host tools (`qmake` and others) in host's architecture (amd64 or i386)
+ * `/usr/local/qt5-rpi/` - Qt sdk and runtime (libraries, headers and examples) for Raspberry Pi (armhf)
+ * `/usr/local/qt5-rpi-sysroot/` - Raspberry Pi sysroot for cross-building Qt applications (armhf)
 
 ## Troubleshooting and support
 
