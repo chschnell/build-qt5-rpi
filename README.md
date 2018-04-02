@@ -49,7 +49,7 @@ Create a 32- or 64-Bit virtual machine and give it at least 32GB of hard disk sp
 
 ### Debian setup
 
-Boot the host machine up and install Debian from the `.iso`. You can work with the defaults in Debian setup, for a minimal setup unselect all at `tasksel` except:
+Boot the host machine up and install Debian 9 Netinst from an `.iso` image, for example [debian-9.4.0-amd64-netinst.iso](https://www.debian.org/CD/netinst/). You can work with the defaults in Debian setup, for a minimal setup unselect all at `tasksel` except:
 
  * [X] `SSH Server`
  * [X] `standard system utilites`
@@ -307,17 +307,17 @@ The script runs through several stages in fixed order, any stage or set of stage
 
 Once the build is complete you'll find these files and subdirectories in the host's build directory:
 
- * `./build/` - Qt's build directory. See `build/config.summary` for a summary of Qt's feature auto-detection.
- * `./build-qt5-rpi.conf` - Build configuration file, created in the `init` stage.
- * `./qt-everywhere-opensource-host_5.9.4_amd64.deb` - Contains a copy of the Raspbian sysroot `/usr/local/qt5-rpi-sysroot` (armhf), a copy of the Qt sdk and runtime `/usr/local/qt5-rpi` (armhf) and a copy of the Qt host tools `/usr/local/qt5` (amd64 or i386). The installer copies host tools (`bin/qmake` etc.) into `/usr/local` to make them directly available through the default `PATH`. Depends on: `build-essential` and `crossbuild-essential-armhf`.
- * `./qt-everywhere-opensource-rpi_5.9.4_armhf.deb` - Contains a copy of the Qt sdk and runtime `/usr/local/qt5-rpi` (armhf). The Qt shared libraries are automatically registered and unregistered with a `ldconfig` trigger. Depends on all non-dev packages that were installed in the build environment. Also depends on `ttf-mscorefonts-installer` for improved fonts and on `upower` to counter the `org.freedesktop.UPower.GetDisplayDevice` warnings from Qt.
- * `./sysroot.img` - Locally modified copy of a Raspbian image.
+ * `./build/` - Qt's build directory. Created during the `init` stage. See `build/config.summary` for a summary of Qt's feature auto-detection.
+ * `./build-qt5-rpi.conf` - Build configuration file, created during the `init` stage.
+ * `./qt-everywhere-opensource-host_5.9.4_amd64.deb` - Created at the end of the `install` stage, contains a copy of the Raspbian sysroot `/usr/local/qt5-rpi-sysroot` (armhf), a copy of the Qt sdk and runtime `/usr/local/qt5-rpi` (armhf) and a copy of the Qt host tools `/usr/local/qt5` (amd64 or i386). The installer copies host tools (`bin/qmake` etc.) into `/usr/local` to make them directly available through the default `PATH`. Depends on: `build-essential` and `crossbuild-essential-armhf`.
+ * `./qt-everywhere-opensource-rpi_5.9.4_armhf.deb` - Created at the end of the `install` stage, contains a copy of the Qt sdk and runtime `/usr/local/qt5-rpi` (armhf). The Qt shared libraries are automatically registered and unregistered with a `ldconfig` trigger. Depends on all non-dev packages that were installed in the build environment. Also depends on `ttf-mscorefonts-installer` for improved fonts and on `upower` to counter the `org.freedesktop.UPower.GetDisplayDevice` warnings from Qt.
+ * `./sysroot.img` - Created during the `mksysroot` stage. Locally modified copy of a Raspbian image.
 
 The script also creates these directories:
 
- * `/usr/local/qt5/` - Qt host tools (`qmake` and others) in host's architecture (amd64 or i386)
- * `/usr/local/qt5-rpi/` - Qt sdk and runtime (libraries, headers and examples) for Raspberry Pi (armhf)
- * `/usr/local/qt5-rpi-sysroot/` - Raspberry Pi sysroot for cross-building Qt applications (armhf)
+ * `/usr/local/qt5/` - Created during the `install` stage, contains Qt host tools (`qmake` and others) in host's architecture (amd64 or i386)
+ * `/usr/local/qt5-rpi/` - Created during the `install` stage, contains Qt sdk and runtime (libraries, headers and examples) for Raspberry Pi (armhf)
+ * `/usr/local/qt5-rpi-sysroot/` - Created during the `mksysroot` stage, contains Raspberry Pi sysroot for cross-building Qt applications (armhf)
 
 ## Troubleshooting and support
 

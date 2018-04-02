@@ -276,14 +276,12 @@ function file_replace_c_str {
 }
 
 function patch_libQt5WebEngineCore_so_5_9_3 {
-    if [ -e "$QT_BUILD_DIR/qtwebengine/lib/libQt5WebEngineCore.so.5.9.3" ]; then
-        local LIBFILE=$(realpath "$QT_BUILD_DIR/qtwebengine/lib/libQt5WebEngineCore.so.5.9.3")
-        if [ -e $LIBFILE ]; then
-            { log_info "Patching broken paths in \"$LIBFILE\""; } 2> /dev/null
-            file_replace_c_str "$LIBFILE" "$QT_SYSROOT_DIR/opt/vc/lib" /opt/vc/lib
-            file_replace_c_str "$LIBFILE" libEGL.so.1 libEGL.so
-            file_replace_c_str "$LIBFILE" libGLESv2.so.2 libGLESv2.so
-        fi
+    if [ -e "${QT_BUILD_DIR}/qtwebengine/lib/libQt5WebEngineCore.so.5.9.3" ]; then
+        local LIBFILE=$(realpath "${QT_BUILD_DIR}/qtwebengine/lib/libQt5WebEngineCore.so.5.9.3")
+        { log_info "Patching broken paths in \"${LIBFILE}\""; } 2> /dev/null
+        file_replace_c_str "${LIBFILE}" "${QT_SYSROOT_DIR}/opt/vc/lib" /opt/vc/lib
+        file_replace_c_str "${LIBFILE}" libEGL.so.1 libEGL.so
+        file_replace_c_str "${LIBFILE}" libGLESv2.so.2 libGLESv2.so
     fi
 }
 
