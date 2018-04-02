@@ -99,7 +99,7 @@ sudo apt-get install build-essential crossbuild-essential-armhf\
 
 ### Downloads
 
-Finish your host setup with a of clone this repository and two downloads:
+Finish your host setup with a clone of this repository and two downloads:
 
 ```bash
 # change to your home directory (or any directory of your choice)
