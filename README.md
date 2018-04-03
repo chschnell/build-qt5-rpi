@@ -74,6 +74,13 @@ Choose one of these options to install sudo (these commands ask for the root pas
      service sudo restart"
    ```
 
+Next, add the directory where Qt's host tools (`qmake` etc.) will be installed to your PATH:
+
+```bash
+# add to ~/.profile to make this setting permanent
+export PATH=$PATH:/usr/local/qt5/bin
+```
+
 Then, install the apt packages required by the host in order to build Qt5, like the armhf cross-toolchain:
 
 ```bash
@@ -84,7 +91,7 @@ sudo apt-get install build-essential crossbuild-essential-armhf\
 
 **Extra notes for 64-Bit hosts only**
 
-* Enable 32-Bit architecture support, refresh local apt repository index and install required 32-Bit compatibility apt packages:
+* Enable 32-Bit foreign architecture support:
 
    ```bash
    # enable 32-Bit architecture support
@@ -182,11 +189,8 @@ Next you will have to update your Pi using these commands:
 # log in to your Pi
 ssh pi@raspberrypi
 
-# update Raspbian
-pi@raspberrypi:~ $ sudo apt-get update && sudo apt-get -y upgrade
-
-# update kernel, fix /opt/vc/lib and refresh apt (again)
-pi@raspberrypi:~ $ sudo rpi-update && sudo apt-get update
+# update Raspbian, kernel, fix /opt/vc/lib and refresh apt (again)
+pi@raspberrypi:~ $ sudo apt-get update && sudo apt-get -y upgrade && sudo rpi-update && sudo apt-get update
 
 # reboot
 pi@raspberrypi:~ $ sudo reboot
@@ -254,14 +258,7 @@ When you're done you can close your Pi login session by entering the `exit` comm
 In this example we will cross-build Qt's `minibrowser` for the Pi and run it without X11.
 The `minibrowser` example uses Qt's [WebEngine](https://doc.qt.io/qt-5.9/qtwebengine-overview.html) component which embeds the Chromium browser.
 
-On the host, add Qt's host tools (for `qmake` etc.) to your PATH:
-
-```bash
-# add to ~/.profile to make this setting permanent
-export PATH=$PATH:/usr/local/qt5/bin
-```
-
-Now build and test the `minibrowser` example:
+Cross-build, install and test the `minibrowser` example:
 
 ```bash
 cd ~/qt5.9.4

@@ -241,7 +241,7 @@ function replace_absolute_symlinks {
         for SYMLINK in $(find "${SYSROOT_IMG_DIR}${DIRECTORY}" -type l); do
             SYMLINK_TARGET="$(readlink $SYMLINK)"
             if [ "${SYMLINK_TARGET:0:1}" = "/" ]; then
-                log_info "replacing symlink ${SYMLINK} -> ${SYMLINK_TARGET}"
+                echo "replacing symlink ${SYMLINK} -> ${SYMLINK_TARGET}"
                 sudo ln -sfr "${SYSROOT_IMG_DIR}${SYMLINK_TARGET}" "${SYMLINK}"
             fi
         done
