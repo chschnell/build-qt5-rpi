@@ -39,7 +39,7 @@ You can choose any hypervisor to host the Debian virtual machine. The script was
 
 Create a 32- or 64-Bit virtual machine and give it at least 32GB of hard disk space. On a 64-Bit machine, assign it as many processor cores and RAM as is reasonably possible on your physical machine.
 
-**Extra notes for 32-Bit hosts only**
+**Extra notes for 32-Bit hosts only:**
 
  * If you plan to use only a single processor core, give your machine 4GB of RAM.
  * If you plan to use multiple cores instead and your CPU supports PAE ([Physical Addresss Extension](https://en.wikipedia.org/wiki/Physical_Address_Extension)), then:
@@ -54,7 +54,7 @@ Boot the host machine up and install Debian 9 Netinst from an `.iso` image, for 
  * [X] `SSH Server`
  * [X] `standard system utilites`
 
-Once the installation is complete log in to your host and, if you want, use `ip addr` to find your host's IP address and then use a SSH terminal (like [putty](http://www.putty.org/) on Windows) from here on to interact more comfortably with your build host.
+Once the installation is complete log in to your host and, if you want, use `ip addr` to find your host's IP address and then use a SSH terminal (like [putty](https://www.putty.org/) on Windows) from here on to interact more comfortably with your build host.
 
 Next it is necessary to install `sudo` on your build host, and it is recommended to give yourself full sudo rights (without any permission checks). The build script uses `sudo` to mount the sysroot image into the file system, and to set ownerships of files in generated .deb packages. If you do not give yourself full sudo rights you will be prompted for your root password when you run the build script.
 
@@ -69,27 +69,27 @@ Choose one of these options to install sudo (these commands ask for the root pas
  * Option 2: sudo without permission checks (build script will run without interruptions)
 
    ```bash
-   su -c "apt-get -y install sudo && adduser $USER sudo &&\
-     echo \"$USER ALL=(ALL) NOPASSWD:ALL\" > /etc/sudoers.d/$USER &&\
+   su -c "apt-get -y install sudo && adduser $USER sudo && \
+     echo \"$USER ALL=(ALL) NOPASSWD:ALL\" > /etc/sudoers.d/$USER && \
      service sudo restart"
    ```
 
 Next, add the directory where Qt's host tools (`qmake` etc.) will be installed to your PATH:
 
 ```bash
-# add to ~/.profile to make this setting permanent
+# add to host's ~/.profile to make this setting permanent
 export PATH=$PATH:/usr/local/qt5/bin
 ```
 
 Then, install the apt packages required by the host in order to build Qt5, like the armhf cross-toolchain:
 
 ```bash
-sudo apt-get install build-essential crossbuild-essential-armhf\
-  qemu-user-static pkg-config git perl python gperf bison ruby flex gyp\
-  libnss3-dev libnspr4-dev libfreetype6-dev libpng-dev libdbus-1-dev
+sudo apt-get install build-essential crossbuild-essential-armhf \
+    qemu-user-static pkg-config git perl python gperf bison ruby flex gyp \
+    libnss3-dev libnspr4-dev libfreetype6-dev libpng-dev libdbus-1-dev
 ```
 
-**Extra notes for 64-Bit hosts only**
+**Extra notes for 64-Bit hosts only:**
 
 * Enable 32-Bit foreign architecture support:
 
@@ -120,7 +120,7 @@ wget https://downloads.raspberrypi.org/raspbian_lite/images/raspbian_lite-2018-0
 unzip 2018-03-13-raspbian-stretch-lite.zip
 
 # download and unpack Qt 5.9.4 sources
-wget http://download.qt.io/archive/qt/5.9/5.9.4/single/qt-everywhere-opensource-src-5.9.4.tar.xz
+wget https://download.qt.io/archive/qt/5.9/5.9.4/single/qt-everywhere-opensource-src-5.9.4.tar.xz
 tar -xf qt-everywhere-opensource-src-5.9.4.tar.xz
 ```
 
@@ -136,7 +136,8 @@ mkdir ~/qt5.9.4
 cd ~/qt5.9.4
 
 # initialize this build and create configuration file `build-qt5-rpi.conf`
-../build-qt5-rpi/build-qt5-rpi.sh init -r ../2018-03-13-raspbian-stretch-lite.img -s ../qt-everywhere-opensource-src-5.9.4
+../build-qt5-rpi/build-qt5-rpi.sh init -r ../2018-03-13-raspbian-stretch-lite.img \
+    -s ../qt-everywhere-opensource-src-5.9.4
 
 # create `sysroot.img` unless it already exists, then run Qt's configure
 ../build-qt5-rpi/build-qt5-rpi.sh config
@@ -180,7 +181,8 @@ ssh-keygen -t rsa -C pi@raspberrypi -N "" -f ~/.ssh/id_rsa
 
 # copy pulic key to your Pi (replace pi@raspberrypi if necessary)
 # note: this command will ask for your Pi user password
-cat ~/.ssh/id_rsa.pub | ssh -o StrictHostKeyChecking=no pi@raspberrypi "mkdir -p .ssh && chmod 700 .ssh && cat >> .ssh/authorized_keys"
+cat ~/.ssh/id_rsa.pub | ssh -o StrictHostKeyChecking=no pi@raspberrypi \
+    "mkdir -p .ssh && chmod 700 .ssh && cat >> .ssh/authorized_keys"
 ```
 
 Next you will have to update your Pi using these commands:
@@ -197,6 +199,14 @@ pi@raspberrypi:~ $ sudo reboot
 ```
 
 **Note:** Currently, Qt without X11 doesn't work properly on the Pi without running `rpi-update` to fix the VideoCore libraries in `/opt/vc/lib`. This will hopefully change with a future Raspbian release.
+
+If you use a mouse or a touchscreen without X11, consider installing console mouse support:
+   
+```bash
+pi@raspberrypi:~ $ sudo apt-get install gpm
+```
+   
+This allows you to wake the console screen saver using your mouse or touchscreen.
 
 ### Qt5 installation
 
@@ -223,35 +233,22 @@ pi@raspberrypi:~ $ sudo apt remove qt-everywhere-opensource-rpi
 pi@raspberrypi:~ $ sudo apt autoremove
 ```
 
-While you're logged in to your Pi, it is a good time to consider these additional steps for your setup (specifically if you don't plan to use X11):
+Before using Qt with your Pi (specifically if you don't plan to use X11), you should also consider some of the [Qt-specific environment variables](http://doc.qt.io/qt-5/embedded-linux.html). Most importantly, Qt wants to know your display dimensions (in millimeters) or you will get `Unable to query physical screen size` warnings when executing your application and maybe other unwanted side effects. You may also want to hide the mouse cursor if you have a touchscreen.
 
- * To counter the `Unable to query physical screen size` warnings, find your display's dimensions in millimeters and set these environment variables:
-   
-   ```bash
-   # add to Pi's ~/.profile to make these settings permanent
-   # example 1: Samsung SyncMaster P2450H with 531mm x 298mm
-   export QT_QPA_EGLFS_PHYSICAL_WIDTH=531
-   export QT_QPA_EGLFS_PHYSICAL_HEIGHT=298
-   # example 2: Raspberry Pi 7" touchscreen: 155mm x 86mm
-   #export QT_QPA_EGLFS_PHYSICAL_WIDTH=155
-   #export QT_QPA_EGLFS_PHYSICAL_HEIGHT=86
-   ```
+```bash
+# add to Pi's ~/.profile to make these settings permanent
 
- * To hide the mouse cursor in case you have a touchscreen:
-   ```bash
-   # add to Pi's ~/.profile to make this setting permanent
-   export QT_QPA_EGLFS_HIDECURSOR=1
-   ```
+# Display size example 1: Samsung SyncMaster P2450H with 531mm x 298mm
+export QT_QPA_EGLFS_PHYSICAL_WIDTH=531
+export QT_QPA_EGLFS_PHYSICAL_HEIGHT=298
 
- * If you use a mouse or a touchscreen without X11, consider installing console mouse support:
-   
-   ```bash
-   pi@raspberrypi:~ $ sudo apt-get install gpm
-   ```
-   
-   This allows you to wake the console screen saver using your mouse or touchscreen.
+# Display size example 2: Raspberry Pi 7" touchscreen: 155mm x 86mm
+#export QT_QPA_EGLFS_PHYSICAL_WIDTH=155
+#export QT_QPA_EGLFS_PHYSICAL_HEIGHT=86
 
-When you're done you can close your Pi login session by entering the `exit` command.
+# hide mouse cursor
+export QT_QPA_EGLFS_HIDECURSOR=1
+```
 
 ## Example
 
