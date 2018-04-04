@@ -293,7 +293,7 @@ The script runs through several stages in fixed order, any stage or set of stage
     Cleans all remains from a previous build on the host, then runs Qt's `configure`.
  4. **build** - Runs Qt's `make` parallelized over your number of cores.
     Qt 5.9.3: patches broken paths in `libQt5WebEngineCore.so.5.9.3`.
- 5. **install** - Installs Qt and creates the `.deb` installers. Cleans all remains from a previous build on the Pi, installs sdk locally on the host in `/usr/local/qt5-rpi` and the host-tools in `/usr/local/qt5`, then creates the `.deb` packages.
+ 5. **install** - Installs Qt and creates the `.deb` installers. Cleans all remains from a previous build, installs sdk locally on the host in `/usr/local/qt5-rpi` and the host-tools in `/usr/local/qt5`, then creates the `.deb` packages.
 
 Once the build is complete you'll find these files and subdirectories in the host's build directory:
 
