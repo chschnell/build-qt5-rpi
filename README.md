@@ -23,7 +23,7 @@ This build script `build-qt5-rpi` is intended to cross-build Qt everywhere-opens
 
 The primary focus is on cross-building Qt applications for target devices without X11. Building for the Pi with X11 is supported but not tested very well (feedback welcome).
 
-Note that build-qt5-rpi does not access a physical Raspberry Pi to cross-compile Qt for it, instead it mounts and operates on a modified Raspbian image to generate the sysroot for Qt's build system.
+Note that build-qt5-rpi does not access a physical Raspberry Pi to cross-compile Qt for it, instead it mounts and operates on a modified Raspbian image to generate the sysroot for Qt's build system (tested Raspbian releases: 2017-11-29, 2018-03-13 and 2018-04-18).
 
 This script generates two `.deb` installers, one with the sdk and runtime for the Pi and another for build hosts of the same architecture as the one used (amd64 or i386). These two installers are fully self-contained and can easily be deployed independently from the build host.
 
@@ -115,9 +115,9 @@ cd
 # clone this repository
 git clone https://github.com/chschnell/build-qt5-rpi
 
-# download and unpack Raspbian Stretch Lite 2018-03-13 image
-wget https://downloads.raspberrypi.org/raspbian_lite/images/raspbian_lite-2018-03-14/2018-03-13-raspbian-stretch-lite.zip
-unzip 2018-03-13-raspbian-stretch-lite.zip
+# download and unpack Raspbian Stretch Lite image
+wget https://downloads.raspberrypi.org/raspbian_lite/images/raspbian_lite-2018-04-19/2018-04-18-raspbian-stretch-lite.zip
+unzip 2018-04-18-raspbian-stretch-lite.zip
 
 # download and unpack Qt 5.9.4 sources
 wget https://download.qt.io/archive/qt/5.9/5.9.4/single/qt-everywhere-opensource-src-5.9.4.tar.xz
@@ -136,7 +136,7 @@ mkdir ~/qt5.9.4
 cd ~/qt5.9.4
 
 # initialize this build and create configuration file `build-qt5-rpi.conf`
-../build-qt5-rpi/build-qt5-rpi.sh init -r ../2018-03-13-raspbian-stretch-lite.img \
+../build-qt5-rpi/build-qt5-rpi.sh init -r ../2018-04-18-raspbian-stretch-lite.img \
     -s ../qt-everywhere-opensource-src-5.9.4
 
 # create `sysroot.img` unless it already exists, then run Qt's configure
@@ -311,6 +311,31 @@ The script also creates these directories:
 
 ## Troubleshooting and support
 
+**Check VideoCore libraries**
+
+ * Check that you have the proper VideoCore libraries installed. Run this command and compare that you get the same output:
+
+   ```bash
+   pi@raspberrypi:~ $ ldconfig -p | grep -E "lib(EGL|GLESv2|OpenVG|WFC).so"
+      libWFC.so (libc6,hard-float) => /opt/vc/lib/libWFC.so
+      libOpenVG.so (libc6,hard-float) => /opt/vc/lib/libOpenVG.so
+      libGLESv2.so (libc6,hard-float) => /opt/vc/lib/libGLESv2.so
+      libEGL.so (libc6,hard-float) => /opt/vc/lib/libEGL.so
+   ```
+
+ * In case you receive no or some different output you may further check to see if you have the proper VideoCore libraries installed in `/opt/vc/lib` (this is what you should normally see, most likely not the case):
+
+   ```bash
+   pi@raspberrypi:~ $ ls -la /opt/vc/lib/lib{EGL,GLESv1_CM,GLESv2,OpenVG,WFC}.so
+   -rw-r--r-- 1 root root 202072 Apr 19 18:42 /opt/vc/lib/libEGL.so
+   lrwxrwxrwx 1 root root     12 Apr 19 18:42 /opt/vc/lib/libGLESv1_CM.so -> libGLESv2.so
+   -rw-r--r-- 1 root root 105768 Apr 19 18:42 /opt/vc/lib/libGLESv2.so
+   -rw-r--r-- 1 root root  99200 Apr 19 18:42 /opt/vc/lib/libOpenVG.so
+   -rw-r--r-- 1 root root  78552 Apr 19 18:42 /opt/vc/lib/libWFC.so
+   ```
+
+ * Run `sudo rpi-update` to try to fix VideoCore library issues.
+
 **Check for conflicting libraries**
 
  * Check that you don't have any of the `mesa` libraries installed. Test and see that you get no output from this command:
@@ -328,31 +353,6 @@ The script also creates these directories:
    ```
    
    In case you do see package names printed by this command try to remove the listed packages with `apt-get remove`.
-
-**Check VideoCore libraries**
-
- * Check that you have the proper VideoCore libraries installed. Run this command and compare that you get the same output:
-
-   ```bash
-   pi@raspberrypi:~ $ ldconfig -p | grep -E "(libEGL|libGLESv2|libOpenVG|libWFC).so"
-      libWFC.so (libc6,hard-float) => /opt/vc/lib/libWFC.so
-      libOpenVG.so (libc6,hard-float) => /opt/vc/lib/libOpenVG.so
-      libGLESv2.so (libc6,hard-float) => /opt/vc/lib/libGLESv2.so
-      libEGL.so (libc6,hard-float) => /opt/vc/lib/libEGL.so
-   ```
-
- * In case you receive no or some different output you may further check to see if you have the proper VideoCore libraries installed in `/opt/vc/lib` (this is what you should normally see, most likely not the case):
-
-   ```bash
-   pi@raspberrypi:~ $ ls -la /opt/vc/lib/lib{EGL,GLESv1_CM,GLESv2,OpenVG,WFC}.so
-   -rw-r--r-- 1 root root 202072 Apr  1 06:09 /opt/vc/lib/libEGL.so
-   lrwxrwxrwx 1 root root     12 Apr  1 06:09 /opt/vc/lib/libGLESv1_CM.so -> libGLESv2.so
-   -rw-r--r-- 1 root root 105768 Apr  1 06:09 /opt/vc/lib/libGLESv2.so
-   -rw-r--r-- 1 root root  99200 Apr  1 06:09 /opt/vc/lib/libOpenVG.so
-   -rw-r--r-- 1 root root  78552 Apr  1 06:09 /opt/vc/lib/libWFC.so
-   ```
-
- * Run `sudo rpi-update` to try to fix VideoCore library issues.
 
 **Other known issues**
 
